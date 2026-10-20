@@ -19,7 +19,7 @@ export function withSampleData(data: AppData): AppData {
     return {
       id: newId(),
       name: s.name,
-      icon: s.slug ? { kind: 'preset', slug: s.slug } : { kind: 'letter' },
+      icon: { kind: 'letter' },
       color: s.color,
       categoryId: data.categories.find((c) => c.name === s.category)?.id ?? data.categories[0].id,
       paymentMethodId: card.id,

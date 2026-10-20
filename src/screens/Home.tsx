@@ -40,14 +40,19 @@ export function Home() {
   );
 }
 
+// 瓶の高さは中身に合わせる（最低 JAR_MIN、画面に入る高さまで）。入りきらないときはアイコンを縮める
+const JAR_MIN = 220;
+const LID = 18;
+const HEADROOM = 56;
+
 function Jar({ subs, today, usdRate }: { subs: Subscription[]; today: string; usdRate: number }) {
-  const box = useRef<HTMLDivElement>(null);
+  const wrap = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
 
   useLayoutEffect(() => {
-    const el = box.current;
+    const el = wrap.current;
     if (!el) return;
-    const measure = () => setSize({ width: el.clientWidth, height: el.clientHeight });
+    const measure = () => setSize({ width: el.clientWidth, height: Math.max(el.clientHeight - LID, JAR_MIN) });
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
@@ -62,14 +67,17 @@ function Jar({ subs, today, usdRate }: { subs: Subscription[]; today: string; us
       ),
     [subs, today, usdRate, size.width, size.height],
   );
+  const top = Math.min(size.height, ...packed.map((p) => p.y - p.d / 2));
+  const jarHeight = subs.length === 0 ? JAR_MIN : Math.min(size.height, Math.max(JAR_MIN, size.height - top + HEADROOM));
+  const shift = jarHeight - size.height;
   const stagger = Math.min(110, 2200 / Math.max(packed.length, 1));
 
   return (
-    <div className="jar-wrap">
+    <div className="jar-wrap" ref={wrap}>
       <div className="jar-lid" aria-hidden="true">
         <span />
       </div>
-      <div className="jar" ref={box}>
+      <div className="jar" style={{ height: jarHeight }}>
         <span className="jar-shine" aria-hidden="true" />
         {subs.length === 0 && (
           <div className="jar-empty">
@@ -90,8 +98,8 @@ function Jar({ subs, today, usdRate }: { subs: Subscription[]; today: string; us
               style={
                 {
                   left: p.x - p.d / 2,
-                  top: p.y - p.d / 2,
-                  '--from': `${-Math.round(p.y + p.d)}px`,
+                  top: p.y + shift - p.d / 2,
+                  '--from': `${-Math.round(p.y + shift + p.d)}px`,
                   animationDelay: `${Math.round(i * stagger)}ms`,
                 } as CSSProperties
               }

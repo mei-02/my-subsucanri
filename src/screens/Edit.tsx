@@ -2,9 +2,8 @@ import { useRef, useState, type FormEvent } from 'react';
 import { useFeedback } from '../components/Feedback';
 import { BackIcon, EyeIcon, EyeOffIcon, TrashIcon } from '../components/Icons';
 import { ServiceIcon } from '../components/ServiceIcon';
-import { fetchSiteIcon, imageFileToIcon } from '../lib/image';
+import { imageFileToIcon } from '../lib/image';
 import { searchCatalog, type CatalogService } from '../lib/catalog';
-import { PRESET_ICONS } from '../lib/services';
 import { fullDate, money } from '../lib/format';
 import {
   newId,
@@ -64,9 +63,6 @@ export function Edit({ id }: { id?: string }) {
   const [change, setChange] = useState({ from: today, amount: '' });
 
   const [suggestOpen, setSuggestOpen] = useState(false);
-  const [iconPanel, setIconPanel] = useState<'' | 'preset' | 'fetch'>('');
-  const [domain, setDomain] = useState('');
-  const [fetching, setFetching] = useState(false);
   const [error, setError] = useState('');
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -77,35 +73,15 @@ export function Edit({ id }: { id?: string }) {
     setSuggestOpen(false);
     const cat = data.categories.find((c) => c.name === s.category);
     if (cat) setCategoryId(cat.id);
-    if (s.slug) {
-      setIcon({ kind: 'preset', slug: s.slug });
-      setIconPanel('');
-    } else if (s.domain) {
-      setDomain(s.domain);
-      setIconPanel('fetch');
-    }
+    setColor(s.color);
   };
 
   const onFile = async (file: File | undefined) => {
     if (!file) return;
     try {
       setIcon({ kind: 'image', dataUrl: await imageFileToIcon(file) });
-      setIconPanel('');
     } catch (e) {
       toast((e as Error).message);
-    }
-  };
-
-  const fetchIcon = async () => {
-    setFetching(true);
-    try {
-      setIcon({ kind: 'image', dataUrl: await fetchSiteIcon(domain) });
-      setIconPanel('');
-      toast('アイコンを取得しました');
-    } catch (e) {
-      toast((e as Error).message);
-    } finally {
-      setFetching(false);
     }
   };
 
@@ -221,7 +197,7 @@ export function Edit({ id }: { id?: string }) {
                 {suggestions.map((s) => (
                   <li key={s.id}>
                     <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => pickSuggestion(s)}>
-                      <ServiceIcon name={s.name} color={color} icon={s.slug ? { kind: 'preset', slug: s.slug } : { kind: 'letter' }} size={32} />
+                      <ServiceIcon name={s.name} color={s.color} icon={{ kind: 'letter' }} size={32} />
                       <span>{s.name}</span>
                       <span className="muted xsmall">{s.category}</span>
                     </button>
@@ -236,14 +212,8 @@ export function Edit({ id }: { id?: string }) {
             <div className="row gap-3">
               <ServiceIcon name={name || '?'} icon={icon} color={color} size={56} />
               <div className="icon-actions">
-                <button type="button" className="chip" onClick={() => setIconPanel(iconPanel === 'preset' ? '' : 'preset')}>
-                  内蔵から選ぶ
-                </button>
                 <button type="button" className="chip" onClick={() => fileInput.current?.click()}>
                   画像を選ぶ
-                </button>
-                <button type="button" className="chip" onClick={() => setIconPanel(iconPanel === 'fetch' ? '' : 'fetch')}>
-                  自動で取得
                 </button>
                 {icon.kind !== 'letter' && (
                   <button type="button" className="chip" onClick={() => setIcon({ kind: 'letter' })}>
@@ -253,38 +223,6 @@ export function Edit({ id }: { id?: string }) {
               </div>
             </div>
             <input ref={fileInput} type="file" accept="image/*" hidden onChange={(e) => onFile(e.target.files?.[0])} />
-            {iconPanel === 'preset' && (
-              <div className="preset-grid">
-                {Object.values(PRESET_ICONS).map((p) => (
-                  <button
-                    type="button"
-                    key={p.slug}
-                    aria-label={p.title}
-                    title={p.title}
-                    className={icon.kind === 'preset' && icon.slug === p.slug ? 'on' : ''}
-                    onClick={() => {
-                      setIcon({ kind: 'preset', slug: p.slug });
-                      setIconPanel('');
-                    }}
-                  >
-                    <ServiceIcon name={p.title} icon={{ kind: 'preset', slug: p.slug }} color={color} size={40} />
-                  </button>
-                ))}
-              </div>
-            )}
-            {iconPanel === 'fetch' && (
-              <div className="fetch-box">
-                <p className="muted xsmall">
-                  ボタンを押したときだけ、入力したドメイン名を外部のアイコン取得サービスに送ります。取得した画像は端末内に保存されます。
-                </p>
-                <div className="row gap-2">
-                  <input className="input grow" aria-label="サービスのドメイン" placeholder="例：hulu.jp" value={domain} onChange={(e) => setDomain(e.target.value)} />
-                  <button type="button" className="btn btn-primary btn-sm" disabled={!domain.trim() || fetching} onClick={fetchIcon}>
-                    {fetching ? '取得中…' : '取得'}
-                  </button>
-                </div>
-              </div>
-            )}
             <div className="swatches" role="radiogroup" aria-label="カードの色">
               {COLORS.map((c) => (
                 <button

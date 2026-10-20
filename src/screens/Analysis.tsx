@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { HeartIcon } from '../components/Icons';
+import { MonthlyTrend } from '../components/MonthlyTrend';
 import { ServiceIcon } from '../components/ServiceIcon';
 import { annualSavings, isActive, isInTrial, monthlyEquivalent } from '../lib/calc';
 import { fullDate, yen } from '../lib/format';
@@ -36,6 +37,8 @@ export function Analysis() {
   return (
     <main className="screen with-nav">
       <h1 className="title">分析</h1>
+
+      <MonthlyTrend subscriptions={subscriptions} today={today} usdRate={settings.usdRate} />
 
       <div className="segment wide" role="radiogroup" aria-label="期間">
         <button role="radio" aria-checked={period === 'month'} className={period === 'month' ? 'on' : ''} onClick={() => setPeriod('month')}>

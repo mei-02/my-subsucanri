@@ -19,8 +19,7 @@
   "homepage": "https://github.com/mei-02/my-subsucanri#readme",
   "dependencies": {
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "simple-icons": "^16.35.0"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.31",

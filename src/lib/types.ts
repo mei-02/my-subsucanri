@@ -13,10 +13,8 @@ export interface PricePeriod {
   amount: number;
 }
 
-export type ServiceIcon =
-  | { kind: 'preset'; slug: string }
-  | { kind: 'image'; dataUrl: string }
-  | { kind: 'letter' };
+// 以前の版で保存した 'preset' のアイコンは、頭文字として表示する
+export type ServiceIcon = { kind: 'image'; dataUrl: string } | { kind: 'letter' };
 
 export type TileColor = 'pink' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange';
 

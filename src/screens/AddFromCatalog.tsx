@@ -2,8 +2,9 @@ import { useState, type FormEvent } from 'react';
 import { useFeedback } from '../components/Feedback';
 import { BackIcon, CheckIcon, CloseIcon, SearchIcon } from '../components/Icons';
 import { ServiceIcon } from '../components/ServiceIcon';
-import { CATALOG, CATALOG_CHECKED_AT, lowestPlan, searchCatalog, type CatalogPlan, type CatalogService } from '../lib/catalog';
+import { CATALOG, CATALOG_CHECKED_AT, lowestPlan, searchCatalog, type CatalogPlan } from '../lib/catalog';
 import { cycleLabel } from '../lib/calc';
+import { imageFileToIcon } from '../lib/image';
 import { money } from '../lib/format';
 import { newId, type ServiceIcon as Icon, type Subscription } from '../lib/types';
 import { goBack, navigate } from '../router';
@@ -26,10 +27,12 @@ interface Choice {
   plan: number;
   amount: string;
   startDate: string;
+  /** 登録時に選んだアイコン画像 */
+  image?: string;
 }
 
-function iconOf(service: CatalogService): Icon {
-  return service.slug ? { kind: 'preset', slug: service.slug } : { kind: 'letter' };
+function iconOf(choice: Choice | undefined): Icon {
+  return choice?.image ? { kind: 'image', dataUrl: choice.image } : { kind: 'letter' };
 }
 
 function planLabel(plan: CatalogPlan): string {
@@ -63,6 +66,15 @@ export function AddFromCatalog() {
 
   const setChoice = (id: string, patch: Partial<Choice>) => setChoices((c) => ({ ...c, [id]: { ...c[id], ...patch } }));
 
+  const pickImage = async (id: string, file: File | undefined) => {
+    if (!file) return;
+    try {
+      setChoice(id, { image: await imageFileToIcon(file) });
+    } catch (e) {
+      toast((e as Error).message);
+    }
+  };
+
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
@@ -86,7 +98,7 @@ export function AddFromCatalog() {
       subs.push({
         id: newId(),
         name: service.name,
-        icon: iconOf(service),
+        icon: iconOf(choice),
         color: service.color,
         categoryId: data.categories.find((c) => c.name === service.category)?.id ?? data.categories[0]?.id ?? '',
         paymentMethodId,
@@ -141,8 +153,12 @@ export function AddFromCatalog() {
             return (
               <section key={service.id} className="card plan-card fade-up">
                 <div className="row gap-3">
-                  <ServiceIcon name={service.name} icon={iconOf(service)} color={service.color} size={44} round />
+                  <ServiceIcon name={service.name} icon={iconOf(choice)} color={service.color} size={44} round />
                   <strong className="grow">{service.name}</strong>
+                  <label className="chip">
+                    {choice.image ? '画像を変える' : '画像を選ぶ'}
+                    <input type="file" accept="image/*" hidden onChange={(e) => pickImage(service.id, e.target.files?.[0])} />
+                  </label>
                 </div>
                 <div className="stack-1-5" role="radiogroup" aria-label={`${service.name}のプラン`}>
                   {service.plans.map((p, i) => (
@@ -241,7 +257,7 @@ export function AddFromCatalog() {
                   <CheckIcon size={12} />
                 </span>
               )}
-              <ServiceIcon name={s.name} icon={iconOf(s)} color={s.color} size={44} round />
+              <ServiceIcon name={s.name} icon={iconOf(choices[s.id])} color={s.color} size={44} round />
               <span className="catalog-name">{s.name}</span>
               <span className="muted xsmall">
                 {registered.has(s.id) ? '登録済み' : lowest ? `${money(lowest.amount!, lowest.currency ?? 'JPY')}〜` : '料金は入力'}
@@ -258,7 +274,7 @@ export function AddFromCatalog() {
       <div className={`action-bar${picked.length ? '' : ' hidden'}`}>
         <div className="picked-stack" aria-hidden="true">
           {pickedServices.slice(0, 4).map((s) => (
-            <ServiceIcon key={s.id} name={s.name} icon={iconOf(s)} color={s.color} size={32} round />
+            <ServiceIcon key={s.id} name={s.name} icon={iconOf(choices[s.id])} color={s.color} size={32} round />
           ))}
         </div>
         <span className="bold small grow">{picked.length}件 選択中</span>

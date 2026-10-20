@@ -68,8 +68,6 @@ export function Settings() {
 
       <p className="muted xsmall center">
         データはこの端末の中だけに暗号化して保存されています。
-        <br />
-        サービスのアイコン：Simple Icons（CC0）
       </p>
       <Debug data={data} />
     </main>

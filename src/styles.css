@@ -1129,6 +1129,13 @@ p {
   padding: 0 4px;
 }
 
+.export-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 /* ---------- カタログから追加 ---------- */
 
 .screen.with-bar {

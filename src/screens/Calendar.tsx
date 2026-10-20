@@ -3,6 +3,7 @@ import { BackIcon, ChevronIcon } from '../components/Icons';
 import { ServiceIcon } from '../components/ServiceIcon';
 import { addCycle, isInTrial, paymentDates, priceAt, toDateStr, toJpy } from '../lib/calc';
 import { money, yen } from '../lib/format';
+import { downloadCalendar } from '../lib/ics';
 import type { Subscription } from '../lib/types';
 import { useApp } from '../state';
 
@@ -171,6 +172,21 @@ export function Calendar() {
           </div>
         </section>
       )}
+
+      <section className="card export-card">
+        <div className="stack-2">
+          <strong className="small">iPhoneのカレンダーに書き出す</strong>
+          <p className="muted xsmall">
+            契約中のサブスクの支払日を、毎月・毎年くり返す予定として書き出します。前日の9時に通知します。ID・パスワードは含みません。
+          </p>
+        </div>
+        <button className="btn btn-outline" onClick={() => downloadCalendar(subscriptions)} disabled={!subscriptions.some((s) => !s.cancelledAt)}>
+          カレンダー用ファイルを書き出す
+        </button>
+        <p className="muted xsmall">
+          保存したファイルを開いて「すべてを追加」を押すと、カレンダーに入ります。もう一度書き出すと予定が重なるので、前の予定は消してから読み込んでください。
+        </p>
+      </section>
     </main>
   );
 }

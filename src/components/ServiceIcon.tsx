@@ -1,10 +1,10 @@
 import { PRESET_ICONS } from '../lib/services';
 import type { Subscription } from '../lib/types';
 
-type Props = Pick<Subscription, 'icon' | 'color' | 'name'> & { size?: number };
+type Props = Pick<Subscription, 'icon' | 'color' | 'name'> & { size?: number; round?: boolean };
 
-export function ServiceIcon({ icon, color, name, size = 44 }: Props) {
-  const style = { width: size, height: size, borderRadius: size * 0.32 };
+export function ServiceIcon({ icon, color, name, size = 44, round = false }: Props) {
+  const style = { width: size, height: size, borderRadius: round ? '50%' : size * 0.32 };
   const preset = icon.kind === 'preset' ? PRESET_ICONS[icon.slug] : undefined;
 
   if (preset) {

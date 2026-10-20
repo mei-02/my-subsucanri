@@ -105,3 +105,19 @@ export const ChevronIcon = (p: P) => (
     <path d="M9 5l7 7-7 7" />
   </Svg>
 );
+export const CalendarIcon = (p: P) => (
+  <Svg {...p}>
+    <rect x="4" y="5" width="16" height="16" rx="3" />
+    <path d="M4 10h16M9 3v4M15 3v4" />
+  </Svg>
+);
+export const CheckIcon = (p: P) => (
+  <Svg {...p}>
+    <path d="M5 12l5 5 9-10" />
+  </Svg>
+);
+export const CloseIcon = (p: P) => (
+  <Svg {...p}>
+    <path d="M6 6l12 12M18 6L6 18" />
+  </Svg>
+);

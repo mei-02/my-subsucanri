@@ -8,21 +8,7 @@ import './styles.css';
 applyTheme(getTheme());
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyTheme(getTheme()));
 
-// 新しい版が公開されていたら自動で切り替える。
-// ホーム画面のアプリは開きっぱなしになりやすいので、アプリに戻ってきたときと1時間ごとにも確認する
-registerSW({
-  immediate: true,
-  onRegisteredSW(_url, registration) {
-    if (!registration) return;
-    const check = () => {
-      if (navigator.onLine) registration.update().catch(() => {});
-    };
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') check();
-    });
-    window.setInterval(check, 60 * 60_000);
-  },
-});
+registerSW({ immediate: true });
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

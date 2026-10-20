@@ -38,6 +38,9 @@ export interface Subscription {
   prices: PricePeriod[];
   cancelledAt?: string;
   memo: string;
+  /** カタログから登録した場合のサービスとプラン */
+  catalogId?: string;
+  planName?: string;
 }
 
 export interface NamedItem {

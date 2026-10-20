@@ -1,7 +1,10 @@
-import { ClockIcon, LockIcon } from '../components/Icons';
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { LockIcon } from '../components/Icons';
 import { ServiceIcon } from '../components/ServiceIcon';
-import { daysBetween, isActive, isInTrial, monthlyTotal, nextPayment, paymentsInMonth, priceAt } from '../lib/calc';
-import { inDays, money, shortDate, yen } from '../lib/format';
+import { isActive, isInTrial, monthlyEquivalent, monthlyTotal } from '../lib/calc';
+import { yen } from '../lib/format';
+import { packCircles } from '../lib/pack';
+import type { Subscription } from '../lib/types';
 import { navigate } from '../router';
 import { useApp } from '../state';
 
@@ -9,117 +12,95 @@ const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
 export function Home() {
   const { data, today, lock } = useApp();
-  const { subscriptions, settings, paymentMethods } = data;
+  const { subscriptions, settings } = data;
   const active = subscriptions.filter(isActive);
-
-  const thisMonth = paymentsInMonth(subscriptions, `${today.slice(0, 7)}-01`, settings.usdRate);
-  const trialEndsThisMonth = active.some((s) => isInTrial(s, today) && s.trialEndDate!.slice(0, 7) === today.slice(0, 7));
-  const annual = monthlyTotal(subscriptions, today, settings.usdRate) * 12;
-  const lunches = settings.lunchPrice > 0 ? Math.round(annual / settings.lunchPrice) : 0;
-
-  const trials = active
-    .filter((s) => isInTrial(s, today))
-    .map((s) => ({ sub: s, days: daysBetween(today, s.trialEndDate!) }))
-    .sort((a, b) => a.days - b.days);
-
-  const upcoming = active
-    .filter((s) => !isInTrial(s, today))
-    .map((s) => ({ sub: s, date: nextPayment(s, today)! }))
-    .filter((x) => x.date && daysBetween(today, x.date) <= 31)
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(0, 5);
+  const monthly = monthlyTotal(subscriptions, today, settings.usdRate);
 
   const [, m, d] = today.split('-').map(Number);
   const weekday = WEEKDAYS[new Date(`${today}T00:00:00`).getDay()];
-  const methodName = (id: string) => paymentMethods.find((p) => p.id === id)?.name;
 
   return (
-    <main className="screen with-nav">
+    <main className="screen with-nav home">
       <header className="row between">
-        <div className="stack-2">
-          <span className="muted small">
-            {m}月{d}日（{weekday}）
-          </span>
-          <h1 className="title">おかえりなさい</h1>
-        </div>
+        <span className="muted small bold">
+          {m}月{d}日（{weekday}）
+        </span>
         <button className="icon-btn" aria-label="今すぐロック" onClick={lock}>
           <LockIcon size={20} />
         </button>
       </header>
-
-      <section className="hero pop-in">
-        <span className="hero-label">今月の支払い</span>
-        <div className="hero-amount">{yen(thisMonth)}</div>
-        {trialEndsThisMonth && <span className="muted xsmall">トライアル終了後の支払いを含みます</span>}
-        <div className="grid-2">
-          <div className="mini-card">
-            <span className="muted xsmall">年間</span>
-            <strong>{yen(annual)}</strong>
-          </div>
-          <div className="mini-card">
-            <span className="muted xsmall">契約中</span>
-            <strong>{active.length}件</strong>
-          </div>
-        </div>
-        {lunches > 0 && <span className="muted small">年間でランチ約{lunches}回分です</span>}
-      </section>
-
-      {trials.map(({ sub, days }) => (
-        <a key={sub.id} href={`#/sub/${sub.id}`} className={`alert pop-in${days <= 3 ? ' alert-urgent' : ''}`}>
-          <div className="alert-icon">
-            <ClockIcon size={20} />
-          </div>
-          <div className="stack-2 grow">
-            <strong>{sub.name}のトライアル</strong>
-            <span className="small">
-              {inDays(days)}で終了します（{shortDate(sub.trialEndDate!, today)}）
-            </span>
-          </div>
-        </a>
-      ))}
-
-      {subscriptions.length === 0 ? (
-        <section className="empty pop-in">
-          <p>まだサブスクが登録されていません</p>
-          <button className="btn btn-primary" onClick={() => navigate('/new')}>
-            最初のサブスクを登録する
-          </button>
-        </section>
-      ) : (
-        <section className="stack-3">
-          <div className="row between">
-            <h2 className="section-title">もうすぐ支払い</h2>
-            <a href="#/list" className="link small">
-              すべて見る
-            </a>
-          </div>
-          {upcoming.length === 0 ? (
-            <p className="muted small">1ヶ月以内の支払いはありません</p>
-          ) : (
-            <div className="card list-card">
-              {upcoming.map(({ sub, date }, i) => {
-                const days = daysBetween(today, date);
-                return (
-                  <a key={sub.id} href={`#/sub/${sub.id}`} className="list-row fade-up" style={{ animationDelay: `${i * 50}ms` }}>
-                    <ServiceIcon {...sub} />
-                    <div className="stack-2 grow">
-                      <strong>{sub.name}</strong>
-                      <span className="muted xsmall">
-                        {shortDate(date, today)}
-                        {methodName(sub.paymentMethodId) && `・${methodName(sub.paymentMethodId)}`}
-                      </span>
-                    </div>
-                    <div className="stack-2 end">
-                      <strong>{money(priceAt(sub, date), sub.currency)}</strong>
-                      <span className={`badge${days <= 3 ? ' badge-pink' : ''}`}>{inDays(days)}</span>
-                    </div>
-                  </a>
-                );
-              })}
-            </div>
-          )}
-        </section>
-      )}
+      <div className="stack-2">
+        <h1 className="title-lg">わたしのサブスク</h1>
+        <p className="muted small">
+          毎月 <strong className="ink">{yen(monthly)}</strong>・{active.length}件
+        </p>
+      </div>
+      <Jar subs={active} today={today} usdRate={settings.usdRate} />
     </main>
+  );
+}
+
+function Jar({ subs, today, usdRate }: { subs: Subscription[]; today: string; usdRate: number }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const measure = () => setSize({ width: el.clientWidth, height: el.clientHeight });
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const packed = useMemo(
+    () =>
+      packCircles(
+        subs.map((s) => ({ id: s.id, weight: Math.max(monthlyEquivalent(s, today, usdRate), 100) })),
+        { width: size.width, height: size.height, gap: 5, minD: 44, maxD: Math.min(104, size.width * 0.32) },
+      ),
+    [subs, today, usdRate, size.width, size.height],
+  );
+  const stagger = Math.min(110, 2200 / Math.max(packed.length, 1));
+
+  return (
+    <div className="jar-wrap">
+      <div className="jar-lid" aria-hidden="true">
+        <span />
+      </div>
+      <div className="jar" ref={box}>
+        <span className="jar-shine" aria-hidden="true" />
+        {subs.length === 0 && (
+          <div className="jar-empty">
+            <p className="muted small">登録したサブスクが、ここに貯まっていきます</p>
+            <button className="btn btn-primary" onClick={() => navigate('/add')}>
+              サブスクを追加する
+            </button>
+          </div>
+        )}
+        {packed.map((p, i) => {
+          const sub = subs.find((s) => s.id === p.id)!;
+          return (
+            <a
+              key={p.id}
+              href={`#/sub/${p.id}`}
+              aria-label={sub.name}
+              className={`coin${isInTrial(sub, today) ? ' coin-trial' : ''}`}
+              style={
+                {
+                  left: p.x - p.d / 2,
+                  top: p.y - p.d / 2,
+                  '--from': `${-Math.round(p.y + p.d)}px`,
+                  animationDelay: `${Math.round(i * stagger)}ms`,
+                } as CSSProperties
+              }
+            >
+              <ServiceIcon {...sub} size={p.d} round />
+            </a>
+          );
+        })}
+      </div>
+    </div>
   );
 }

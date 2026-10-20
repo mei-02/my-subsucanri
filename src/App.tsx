@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BottomNav } from './components/BottomNav';
+import { BottomNav, TAB_PATHS } from './components/BottomNav';
 import { FeedbackProvider } from './components/Feedback';
 import { todayStr } from './lib/calc';
 import { createVault, decrypt, encrypt, type EncryptedEnvelope, type Vault } from './lib/crypto';
 import { loadEnvelope, requestPersistence, saveEnvelope } from './lib/storage';
 import { AUTO_LOCK_MINUTES, createInitialData, type AppData } from './lib/types';
 import { useRoute } from './router';
+import { AddFromCatalog } from './screens/AddFromCatalog';
 import { Analysis } from './screens/Analysis';
+import { Calendar } from './screens/Calendar';
 import { Detail } from './screens/Detail';
 import { Edit } from './screens/Edit';
 import { Home } from './screens/Home';
-import { List } from './screens/List';
 import { LockScreen } from './screens/LockScreen';
 import { Settings } from './screens/Settings';
 import { AppContext, type AppApi } from './state';
@@ -117,7 +118,8 @@ function Routes() {
   const route = useRoute();
   const [, section, id] = route.split('/');
   let screen;
-  if (section === 'list') screen = <List />;
+  if (section === 'calendar') screen = <Calendar />;
+  else if (section === 'add') screen = <AddFromCatalog />;
   else if (section === 'analysis') screen = <Analysis />;
   else if (section === 'settings') screen = <Settings />;
   else if (section === 'sub' && id) screen = <Detail id={id} />;
@@ -125,12 +127,11 @@ function Routes() {
   else if (section === 'edit' && id) screen = <Edit id={id} />;
   else screen = <Home />;
 
-  const tabs = ['/', '/list', '/analysis', '/settings'];
   const path = route === '' ? '/' : route;
   return (
     <>
       {screen}
-      {tabs.includes(path) && <BottomNav current={path} />}
+      {TAB_PATHS.includes(path) && <BottomNav current={path} />}
     </>
   );
 }

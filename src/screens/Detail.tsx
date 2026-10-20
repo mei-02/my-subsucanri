@@ -17,8 +17,8 @@ export function Detail({ id }: { id: string }) {
     return (
       <main className="screen">
         <p className="muted">見つかりませんでした</p>
-        <a href="#/list" className="link">
-          一覧に戻る
+        <a href="#/" className="link">
+          ホームに戻る
         </a>
       </main>
     );
@@ -60,14 +60,14 @@ export function Detail({ id }: { id: string }) {
     const ok = await confirm({ title: `${sub.name}を削除しますか？`, message: '累計や節約記録からも消えます', ok: '削除する', danger: true });
     if (!ok) return;
     await update((d) => ({ ...d, subscriptions: d.subscriptions.filter((s) => s.id !== sub.id) }));
-    navigate('/list', { replace: true });
+    navigate('/', { replace: true });
     toast('削除しました');
   };
 
   return (
     <main className="screen">
       <header className="row between">
-        <button className="icon-btn" aria-label="戻る" onClick={() => goBack('/list')}>
+        <button className="icon-btn" aria-label="戻る" onClick={() => goBack('/')}>
           <BackIcon size={20} />
         </button>
         <button className="pill-btn" onClick={() => navigate(`/edit/${sub.id}`)}>
@@ -145,6 +145,12 @@ export function Detail({ id }: { id: string }) {
       )}
 
       <div className="card list-card">
+        {sub.planName && (
+          <div className="kv">
+            <span className="muted">プラン</span>
+            <strong>{sub.planName}</strong>
+          </div>
+        )}
         <div className="kv">
           <span className="muted">支払方法</span>
           <strong>{method ?? '未設定'}</strong>

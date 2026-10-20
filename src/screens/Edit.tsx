@@ -3,7 +3,8 @@ import { useFeedback } from '../components/Feedback';
 import { BackIcon, EyeIcon, EyeOffIcon, TrashIcon } from '../components/Icons';
 import { ServiceIcon } from '../components/ServiceIcon';
 import { fetchSiteIcon, imageFileToIcon } from '../lib/image';
-import { PRESET_ICONS, searchServices, type ServiceSuggestion } from '../lib/services';
+import { searchCatalog, type CatalogService } from '../lib/catalog';
+import { PRESET_ICONS } from '../lib/services';
 import { fullDate, money } from '../lib/format';
 import {
   newId,
@@ -69,9 +70,9 @@ export function Edit({ id }: { id?: string }) {
   const [error, setError] = useState('');
   const fileInput = useRef<HTMLInputElement>(null);
 
-  const suggestions = suggestOpen ? searchServices(name) : [];
+  const suggestions = suggestOpen && name.trim() ? searchCatalog(name, '').slice(0, 6) : [];
 
-  const pickSuggestion = (s: ServiceSuggestion) => {
+  const pickSuggestion = (s: CatalogService) => {
     setName(s.name);
     setSuggestOpen(false);
     const cat = data.categories.find((c) => c.name === s.category);
@@ -218,7 +219,7 @@ export function Edit({ id }: { id?: string }) {
             {suggestions.length > 0 && (
               <ul className="suggest" role="listbox">
                 {suggestions.map((s) => (
-                  <li key={s.name}>
+                  <li key={s.id}>
                     <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => pickSuggestion(s)}>
                       <ServiceIcon name={s.name} color={color} icon={s.slug ? { kind: 'preset', slug: s.slug } : { kind: 'letter' }} size={32} />
                       <span>{s.name}</span>

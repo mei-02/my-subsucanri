@@ -1,12 +1,14 @@
 import { navigate } from '../router';
-import { ChartIcon, GearIcon, HomeIcon, ListIcon, PlusIcon } from './Icons';
+import { CalendarIcon, ChartIcon, GearIcon, HomeIcon, PlusIcon } from './Icons';
 
 const TABS = [
   { path: '/', label: 'ホーム', Icon: HomeIcon },
-  { path: '/list', label: '一覧', Icon: ListIcon },
+  { path: '/calendar', label: 'カレンダー', Icon: CalendarIcon },
   { path: '/analysis', label: '分析', Icon: ChartIcon },
   { path: '/settings', label: '設定', Icon: GearIcon },
 ];
+
+export const TAB_PATHS = TABS.map((t) => t.path);
 
 export function BottomNav({ current }: { current: string }) {
   const tab = (t: (typeof TABS)[number]) => (
@@ -18,7 +20,7 @@ export function BottomNav({ current }: { current: string }) {
   return (
     <nav className="bottom-nav">
       {TABS.slice(0, 2).map(tab)}
-      <button className="nav-add" aria-label="サブスクを追加" onClick={() => navigate('/new')}>
+      <button className="nav-add" aria-label="サブスクを追加" onClick={() => navigate('/add')}>
         <PlusIcon size={26} />
       </button>
       {TABS.slice(2).map(tab)}

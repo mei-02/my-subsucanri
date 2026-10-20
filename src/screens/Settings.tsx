@@ -2,6 +2,7 @@ import { useRef, useState, type FormEvent } from 'react';
 import { useFeedback } from '../components/Feedback';
 import { TrashIcon } from '../components/Icons';
 import { WrongPasswordError } from '../lib/crypto';
+import { getTheme, setTheme, type Theme } from '../lib/theme';
 import { AUTO_LOCK_MINUTES, newId, type AppData, type NamedItem, type Settings as SettingsData } from '../lib/types';
 import { useApp } from '../state';
 
@@ -18,6 +19,9 @@ export function Settings() {
   return (
     <main className="screen with-nav">
       <h1 className="title">設定</h1>
+
+      <h2 className="group-title">表示</h2>
+      <ThemePicker />
 
       <h2 className="group-title">お金の表示</h2>
       <div className="card list-card">
@@ -71,6 +75,34 @@ export function Settings() {
       </p>
       <Debug data={data} />
     </main>
+  );
+}
+
+const THEMES: { value: Theme; label: string }[] = [
+  { value: 'auto', label: '自動' },
+  { value: 'light', label: 'ライト' },
+  { value: 'dark', label: 'ダーク' },
+];
+
+function ThemePicker() {
+  const [theme, setThemeState] = useState<Theme>(getTheme);
+  return (
+    <div className="segment three" role="radiogroup" aria-label="表示テーマ">
+      {THEMES.map((t) => (
+        <button
+          key={t.value}
+          role="radio"
+          aria-checked={theme === t.value}
+          className={theme === t.value ? 'on' : ''}
+          onClick={() => {
+            setTheme(t.value);
+            setThemeState(t.value);
+          }}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
   );
 }
 

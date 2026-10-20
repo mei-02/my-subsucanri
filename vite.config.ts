@@ -14,8 +14,8 @@ export default defineConfig({
         short_name: 'サブスク',
         description: '自分専用のサブスク管理アプリ',
         lang: 'ja',
-        theme_color: '#F7F4F2',
-        background_color: '#F7F4F2',
+        theme_color: '#faf9f7',
+        background_color: '#faf9f7',
         display: 'standalone',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },

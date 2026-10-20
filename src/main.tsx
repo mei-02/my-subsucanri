@@ -2,7 +2,11 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
 import { Root } from './App';
+import { applyTheme, getTheme } from './lib/theme';
 import './styles.css';
+
+applyTheme(getTheme());
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyTheme(getTheme()));
 
 // 新しい版が公開されていたら自動で切り替える。
 // ホーム画面のアプリは開きっぱなしになりやすいので、アプリに戻ってきたときと1時間ごとにも確認する
